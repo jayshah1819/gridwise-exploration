@@ -22,7 +22,7 @@ class WebGPUObjectCaches {
             });
         }
     }
-    
+
     get stats() {
         return `Cache hit/misses:
 Pipeline layouts: ${this.pipelineLayouts.hits}/${this.pipelineLayouts.misses}
@@ -30,13 +30,13 @@ Bind group layouts: ${this.bindGroupLayouts.hits}/${this.bindGroupLayouts.misses
 Compute modules: ${this.computeModules.hits}/${this.computeModules.misses}
 Compute pipelines: ${this.computePipelines.hits}/${this.computePipelines.misses}`;
     }
-    
+
     enable() {
         for (const enabled of this.initiallyEnabled) {
             this[enabled].enable();
         }
     }
-    
+
     disable() {
         for (const enabled of this.initiallyEnabled) {
             this[enabled].disable();

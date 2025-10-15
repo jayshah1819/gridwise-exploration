@@ -5,7 +5,7 @@ class countingMap {
         this.hits = 0;
         this.misses = 0;
     }
-    
+
     get(key) {
         if (!this.enabled) return undefined;
         if (this.map.has(key)) {
@@ -16,7 +16,7 @@ class countingMap {
             return undefined;
         }
     }
-    
+
     set(key, value) {
         if (!this.enabled) return undefined;
         this.map.set(key, value);
@@ -25,7 +25,7 @@ class countingMap {
     enable() {
         this.enabled = true;
     }
-    
+
     disable() {
         this.enabled = false;
     }
