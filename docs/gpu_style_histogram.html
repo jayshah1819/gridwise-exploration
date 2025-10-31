@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>GPU-Style Histogram (Parallel Threads)</title>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <style>
+        body {
+            background: #111;
+            color: #eee;
+            font-family: sans-serif;
+            text-align: center;
+        }
+
+        svg {
+            background: #222;
+            border-radius: 10px;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+
+<body>
+    <h2>GPU-Style Clustering — Threads Updating Bins</h2>
+    <svg width="800" height="400"></svg>
+    <script>
+        const svg = d3.select("svg");
+        const margin = { top: 30, right: 30, bottom: 40, left: 40 };
+        const width = 800 - margin.left - margin.right;
+        const height = 400 - margin.top - margin.bottom;
+        const g = svg.append("g").attr("transform", `translate(${margin.left},${margin.top})`);
+
+        const numThreads = 32;
+        const binsCount = 10;
+        const bins = Array.from({ length: binsCount }, () => ({ count: 0 }));
+        const x = d3.scaleBand().domain(d3.range(binsCount)).range([0, width]).padding(0.2);
+        const y = d3.scaleLinear().domain([0, 10]).range([height, 0]);
+        const color = d3.scaleSequential(d3.interpolateTurbo).domain([0, numThreads]);
+
+        g.append("g").attr("transform", `translate(0,${height})`).call(d3.axisBottom(x));
+        g.append("g").call(d3.axisLeft(y));
+
+        function drawBars() {
+            g.selectAll("rect").data(bins).join("rect")
+                .attr("x", (d, i) => x(i))
+                .attr("width", x.bandwidth())
+                .attr("y", d => y(d.count))
+                .attr("height", d => height - y(d.count))
+                .attr("fill", "#69b3a2");
+        }
+
+        function simulateThreads() {
+            const threads = d3.range(numThreads).map(i => ({
+                id: i, bin: Math.floor(Math.random() * binsCount),
+                x: Math.random() * width, y: Math.random() * 100
+            }));
+
+            g.selectAll(".thread")
+                .data(threads)
+                .join("circle")
+                .attr("class", "thread")
+                .attr("r", 6)
+                .attr("cx", d => d.x)
+                .attr("cy", d => d.y)
+                .attr("fill", d => color(d.id))
+                .transition()
+                .delay((d, i) => i * 100)
+                .duration(1000)
+                .attr("cx", d => x(d.bin) + x.bandwidth() / 2)
+                .attr("cy", d => y(bins[d.bin].count) - 10)
+                .on("end", function (d) {
+                    bins[d.bin].count += 1;
+                    drawBars();
+                    d3.select(this).transition().duration(300).attr("r", 2).attr("opacity", 0.6);
+                });
+        }
+
+        drawBars();
+        simulateThreads();
+    </script>
+</body>
+
+</html>

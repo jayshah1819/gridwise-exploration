@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Clustered Histogram (D3.js)</title>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <style>
+        body {
+            background: #111;
+            color: #eee;
+            font-family: sans-serif;
+            text-align: center;
+        }
+
+        svg {
+            background: #222;
+            border-radius: 10px;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+
+<body>
+    <h2>Clustered Histogram — Two Datasets</h2>
+    <svg width="800" height="400"></svg>
+    <script>
+        const svg = d3.select("svg");
+        const margin = { top: 30, right: 30, bottom: 40, left: 40 };
+        const width = 800 - margin.left - margin.right;
+        const height = 400 - margin.top - margin.bottom;
+        const g = svg.append("g").attr("transform", `translate(${margin.left},${margin.top})`);
+
+        const dataA = d3.range(200).map(() => d3.randomNormal(30, 10)());
+        const dataB = d3.range(200).map(() => d3.randomNormal(50, 10)());
+
+        const bins = d3.bin().domain([0, 80]).thresholds(10);
+        const binsA = bins(dataA);
+        const binsB = bins(dataB);
+
+        const x = d3.scaleBand().domain(d3.range(binsA.length)).range([0, width]).padding(0.2);
+        const y = d3.scaleLinear().domain([0, d3.max([...binsA, ...binsB], d => Math.max(d.length))]).range([height, 0]);
+
+        const subX = d3.scaleBand().domain(["A", "B"]).range([0, x.bandwidth()]).padding(0.05);
+
+        g.append("g").attr("transform", `translate(0,${height})`)
+            .call(d3.axisBottom(x).tickFormat(i => `${Math.round(binsA[i].x0)}–${Math.round(binsA[i].x1)}`));
+        g.append("g").call(d3.axisLeft(y));
+
+        const groups = g.selectAll(".barGroup").data(binsA).join("g").attr("transform", (d, i) => `translate(${x(i)},0)`);
+
+        groups.selectAll("rect")
+            .data((d, i) => [
+                { key: "A", value: binsA[i].length, color: "#69b3a2" },
+                { key: "B", value: binsB[i].length, color: "#ff8c00" }
+            ])
+            .join("rect")
+            .attr("x", d => subX(d.key))
+            .attr("y", d => y(d.value))
+            .attr("width", subX.bandwidth())
+            .attr("height", d => height - y(d.value))
+            .attr("fill", d => d.color);
+    </script>
+</body>
+
+</html>
